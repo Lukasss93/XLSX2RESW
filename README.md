@@ -4,6 +4,7 @@ Convert Excel file (pre-templated) to resw files (Translation file for Windows A
 Drag & Drop your XLSX file on exe file and get your resw files.
 
 Excel Template needed!
+
 |   | A                                  | B          | C            | D       |
 |---|------------------------------------|------------|--------------|---------|
 | 1 | Language →                         | Italian    | English      | English |
