@@ -26,7 +26,6 @@ namespace XLSX2RESW
 
             try
             {
-
                 //check args
                 if(args.Length == 1)
                 {
