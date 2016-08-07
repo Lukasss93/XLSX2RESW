@@ -31,8 +31,6 @@ namespace XLSX2RESW
                 if(args.Length == 1)
                 {
                     filePath = args[0];
-                    MessageBox.Show(filePath);
-
 
                     //check if item dropped is a file
                     if(!File.GetAttributes(filePath).HasFlag(FileAttributes.Directory))
