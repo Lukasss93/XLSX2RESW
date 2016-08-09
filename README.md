@@ -7,7 +7,7 @@ Excel Template needed!
 
 |   | A                                  | B          | C            | D       |
 |---|------------------------------------|------------|--------------|---------|
-| 1 | Language →                         | Italian    | English      | English |
+| 1 | Language →                         | Italian    | English      | Espanol |
 | 2 | ID ↓ - Language code (ISO 639-1) → | it         | en           | es      |
 | 3 | hello                              | ciao       | hello        | hola    |
 | 4 | good_morning                       | buongiorno | good morning | buenos  |
