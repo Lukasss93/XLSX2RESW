@@ -87,7 +87,18 @@ namespace XLSX2RESW
             }
             catch(Exception ex)
             {
-                MessageBox.Show(ex.Message + "\n\n" + ex.StackTrace, "Exception");
+                switch(ex.HResult)
+                {
+                    case -2147024864:
+                        MessageBox.Show("Please close your xlsx file from excel first!","Error");
+                        break;
+
+                    default:
+                        MessageBox.Show(ex.Message + "\n\n" + ex.StackTrace, "Exception " + ex.HResult);
+                        Debug.WriteLine(ex.Message + "\n\n" + ex.StackTrace, "Exception " + ex.HResult);
+                        break;
+                }
+                
             }
 
             //exit
@@ -118,7 +129,7 @@ namespace XLSX2RESW
 
 
                 project_code = result.Tables[0].Rows[1][i].ToString();
-                for(int j = 2; j <= totalRows; j++)
+                for(int j = 2; j < totalRows; j++)
                 {
                     project_values.Add(new JValues()
                     {
