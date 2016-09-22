@@ -16,9 +16,6 @@ using System.Windows.Shapes;
 
 namespace XLSX2RESW.Windows
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class Home : Window
     {
         public Home()
@@ -32,11 +29,8 @@ namespace XLSX2RESW.Windows
         {
             if(e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                // Note that you can have more than one file.
                 string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-
-                // Assuming you have one file that you care about, pass it off to whatever
-                // handling code you have defined.
+                
                 foreach(var file in files)
                 {
                     Debug.WriteLine(file);
