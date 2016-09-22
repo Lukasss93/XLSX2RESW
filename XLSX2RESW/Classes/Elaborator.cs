@@ -6,43 +6,36 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
+using System.Windows;
 using Excel;
 
-namespace XLSX2RESW
+namespace XLSX2RESW.Classes
 {
-    static class Program
+    public class Elaborator
     {
-        private static string filePath = null;
-        private static string supportedExtension = "xlsx";
-        private static string outputFileName = "Resources.resw";
-        private static string suffixOutputFileName = "_XLSX2RESW";
+        private static List<string> errors = new List<string>();
 
-        [STAThread]
-        static void Main(string[] args)
+        public static void Convert(string[] files)
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-
-            try
+            //iterate all files
+            foreach(var file in files)
             {
-                //check args
-                if(args.Length == 1)
+                try
                 {
-                    filePath = args[0];
-
-                    //check if item dropped is a file
-                    if(!File.GetAttributes(filePath).HasFlag(FileAttributes.Directory))
+                    //check if item is a file
+                    if(!File.GetAttributes(file).HasFlag(FileAttributes.Directory))
                     {
-                        //check if file is a .csv
-                        if(Path.GetExtension(filePath) == "." + supportedExtension)
+                        //check if file is supported
+                        if(Path.GetExtension(file) == Constants.InputExtension)
                         {
-                            string folderPath = Path.GetDirectoryName(filePath);
+                            //get folder path
+                            string FolderPath = Path.GetDirectoryName(file);
 
-                            List<JProject> myoutput = ReadFile();
+                            //read file into JLanguage
+                            List<JLanguage> myoutput = ReadFile(file);
 
                             //elaborate file
-                            string outputFolder = folderPath + "\\" + Path.GetFileNameWithoutExtension(filePath) + suffixOutputFileName;
+                            string outputFolder = FolderPath + "\\" + Path.GetFileNameWithoutExtension(file) + Constants.OutputFileNameSuffix;
 
                             if(!Directory.Exists(outputFolder))
                             {
@@ -52,63 +45,72 @@ namespace XLSX2RESW
                                 {
                                     Directory.CreateDirectory(outputFolder + "\\" + items.code);
 
-                                    File.AppendAllText(outputFolder + "\\" + items.code + "\\" + outputFileName, Properties.Resources.resw_start);
+                                    File.AppendAllText(outputFolder + "\\" + items.code + "\\" + Constants.OutputFileName, 
+                                        Properties.Resources.resw_start);
 
                                     foreach(var item in items.values)
                                     {
-                                        File.AppendAllText(outputFolder + "\\" + items.code + "\\" + outputFileName, "\n" + String.Format(Properties.Resources.resw_value, item.id, item.value));
+                                        File.AppendAllText(outputFolder + "\\" + items.code + "\\" + Constants.OutputFileName, 
+                                            "\n" + String.Format(Properties.Resources.resw_value, item.id, item.value));
                                     }
 
-                                    File.AppendAllText(outputFolder + "\\" + items.code + "\\" + outputFileName, "\n" + Properties.Resources.resw_end);
+                                    File.AppendAllText(outputFolder + "\\" + items.code + "\\" + Constants.OutputFileName, 
+                                        "\n" + Properties.Resources.resw_end);
                                 }
 
                                 //DONE!
                             }
                             else
                             {
-                                MessageBox.Show("The " + Path.GetFileNameWithoutExtension(filePath) + suffixOutputFileName + " folder already exist.\nPlease delete it and retry.", "Error");
+                                errors.Add(Path.GetFileName(file) + " not converted. " + Path.GetFileName(outputFolder) + " folder already exist. Please delete it and retry.");
                             }
                         }
-                        else
+                            else
                         {
-                            MessageBox.Show("This application only supports drag & drop of 1 " + supportedExtension + " file!", "Error");
+                            errors.Add(Path.GetFileName(file) + " not converted. This program supports only " + Constants.InputExtension + " files.");
                         }
                     }
                     else
                     {
-                        MessageBox.Show("This application only supports drag & drop of 1 " + supportedExtension + " file!", "Error");
+                        errors.Add(Path.GetFileName(file) + " not converted. This program supports only files.");
                     }
                 }
-                else
+                catch(Exception ex)
                 {
-                    MessageBox.Show("This application only supports drag & drop of 1 " + supportedExtension + " file!", "Error");
-                }
+                    switch(ex.HResult)
+                    {
+                        case -2147024864:
+                            errors.Add(Path.GetFileName(file) + " not converted. Please close your " + Constants.InputExtension + " file from excel first!");
+                            break;
 
+                        default:
+                            errors.Add(Path.GetFileName(file) + " not converted. "+ ex.Message);
+                            Debug.WriteLine(ex.Message + "\n\n" + ex.StackTrace, "Exception " + ex.HResult);
+                            break;
+                    }
+                }
             }
-            catch(Exception ex)
+
+            //check any errors
+            if(errors.Count > 0)
             {
-                switch(ex.HResult)
+                StringBuilder message = new StringBuilder();
+                message.AppendLine("The following items were not converted:");
+                message.AppendLine();
+                foreach(var error in errors)
                 {
-                    case -2147024864:
-                        MessageBox.Show("Please close your xlsx file from excel first!","Error");
-                        break;
-
-                    default:
-                        MessageBox.Show(ex.Message + "\n\n" + ex.StackTrace, "Exception " + ex.HResult);
-                        Debug.WriteLine(ex.Message + "\n\n" + ex.StackTrace, "Exception " + ex.HResult);
-                        break;
+                    message.AppendLine("- " + error);
                 }
-                
-            }
 
-            //exit
-            Application.Exit();
+                //print all errors
+                MessageBox.Show(message.ToString(), "Warning");
+            }
         }
 
-        private static List<JProject> ReadFile()
+        private static List<JLanguage> ReadFile(string file)
         {
-            //open xlsx file
-            FileStream stream = File.Open(filePath, FileMode.Open, FileAccess.Read);
+            //open file
+            FileStream stream = File.Open(file, FileMode.Open, FileAccess.Read);
             IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(stream);
             DataSet result = excelReader.AsDataSet();
 
@@ -119,7 +121,7 @@ namespace XLSX2RESW
             int totalRows = GetTotalRows(result);
 
             //output to return
-            List<JProject> projects = new List<JProject>();
+            List<JLanguage> projects = new List<JLanguage>();
 
             //iterate languages
             for(int i = 1; i <= totalLanguages; i++)
@@ -138,7 +140,7 @@ namespace XLSX2RESW
                     });
                 }
 
-                projects.Add(new JProject() { code = project_code, values = project_values });
+                projects.Add(new JLanguage() { code = project_code, values = project_values });
             }
 
             excelReader.Close();
@@ -189,6 +191,5 @@ namespace XLSX2RESW
         {
             return value.Replace("&", "&amp;");
         }
-
     }
 }

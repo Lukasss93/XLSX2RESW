@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace XLSX2RESW
+namespace XLSX2RESW.Classes
 {
-    public class JProject
+    public class JLanguage
     {
         public string code { get; set; }
         public List<JValues> values { get; set; }
